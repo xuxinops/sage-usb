@@ -15,7 +15,8 @@ parted $sda set 1 boot on
 if [ ! -f CentOS-6.4-x86_64-netinstall.iso ];then
     wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-netinstall.iso
 fi
-~/celtics/livecd/tools/livecd-iso-to-disk.sh ~/Downloads/CentOS-6.4-x86_64-netinstall.iso $sda1
+
+./livecd-iso-to-disk.sh ./CentOS-6.4-x86_64-netinstall.iso $sda1
 dd conv=notrunc bs=440 count=1 if=mbr.bin of=$sda
 e2label $sda1 ustack-usb
 
@@ -52,16 +53,19 @@ EOF
 rsync -P ./extlinux.conf $mnt_point/syslinux/
 
 mkdir $mnt_point/repo
-rsync -Pr /home/hk/ustack/repo/* $mnt_point/repo/
-#rsync -Pr /home/hk/ustack/os $mnt_point/
+rsync -Pr ./repo/* $mnt_point/repo/
+
 mkdir -p $mnt_point/os
-rsync -Pr /home/hk/ustack/CentOS-6.4-x86_64-minimal.iso $mnt_point/os/
+if [ ! -f CentOS-6.4-x86_64-minimal.iso ];then
+    wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
+fi
+rsync -Pr CentOS-6.4-x86_64-minimal.iso $mnt_point/os/
 
 rm $mnt_point/images/install.img
-rsync -P /home/hk/celtics/install/install.img $mnt_point/images/
+rsync -P ./images/install.img $mnt_point/images/
 
 rm $mnt_point/syslinux/initrd.img
-rsync -P /home/hk/celtics/install/initrd.img $mnt_point/syslinux/
+rsync -P ./images/initrd.img $mnt_point/syslinux/
 
 rsync -P /home/hk/celtics/sage/spins/first_node.ks $mnt_point/node.ks
 
