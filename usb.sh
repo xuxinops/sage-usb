@@ -8,9 +8,13 @@ mkdir -p $mnt_point
 umount $sda1
 dd if=/dev/zero of=$sda bs=512 count=1 # clear partition
 echo -ne "n\np\n1\n\n\nw\n" | fdisk $sda # format sdX1
-mkfs.ext4 $sda1 # use ext3
+mkfs.ext4 $sda1 # use ext4
 
 parted $sda set 1 boot on
+# TODO test
+if [ ! -f CentOS-6.4-x86_64-netinstall.iso ];then
+    wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-netinstall.iso
+fi
 ~/celtics/livecd/tools/livecd-iso-to-disk.sh ~/Downloads/CentOS-6.4-x86_64-netinstall.iso $sda1
 dd conv=notrunc bs=440 count=1 if=mbr.bin of=$sda
 e2label $sda1 ustack-usb
