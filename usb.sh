@@ -67,7 +67,7 @@ rsync -P ./images/install.img $mnt_point/images/
 rm $mnt_point/syslinux/initrd.img
 rsync -P ./images/initrd.img $mnt_point/syslinux/
 
-rsync -P /home/hk/celtics/sage/spins/first_node.ks $mnt_point/node.ks
+rsync -P node.ks $mnt_point/node.ks
 
 sync
 
