@@ -1,9 +1,5 @@
 #version=DEVEL
 install
-#lang en_US.UTF-8
-#keyboard us
-#network --onboot yes --device eth0 --bootproto static --ip 192.168.10.1 --gateway 192.168.10.2 --netmask 255.255.255.0 --nameserver 114.114.114.114 --noipv6 --hostname m1
-#network --onboot yes --device eth0 --bootproto dhcp --noipv6
 network --onboot yes --device eth0 --bootproto static --hostname m1
 rootpw  --iscrypted $6$khisXn4dB6eUgWT6$jA/uAPvJP0brDVqhr/BKpx8l7AQ4EJr36e0tHH/J4iPMs9h5oR5B.EzgzB1e8L9ZZkzGnbK9jISQ21YM5zUC40
 firewall --disable
@@ -13,7 +9,6 @@ timezone --utc America/New_York
 
 %include /tmp/part-include
 repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo
-#repo --name=ustack --baseurl=http://mirrors.ustack.com/sunfire/RPMS/x86_64
 
 %pre
 mkdir /tmp/ustack-usb
@@ -72,8 +67,6 @@ echo '127.0.1.1 m1.cluster1.ustack.com m1' >> /etc/hosts
 
 service forman-proxy start
 curl -XPOST -H 'Content-Type:application/json' -d '{"mac": "00:0c:29:fd:94:d1","local": "no","param": "ddd"}' http://localhost:9100/v1.0/node
-
-
 cd /etc/yum.repos.d/
 rm -rf *
 cd -
@@ -85,8 +78,6 @@ baseurl=http://127.0.0.1/repo
 enabled=1
 gpgcheck=0
 EOF
-
-#puppet apply /usr/share/sunfire/ustack/example/site.pp --modulepath /usr/share/sunfire &> /tmp/ustack-puppet.log
 %end
 
 %packages --nobase --ignoremissing
