@@ -13,6 +13,16 @@ repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo
 %pre
 mkdir /tmp/ustack-usb
 mount -L ustack-usb /tmp/ustack-usb
+
+adp=`MegaCli -adpCount | grep -i controller | awk '{print $3}'`
+if [[ $adp = 0* ]];then
+    pylsi raid -d
+    pylsi raid -r 9
+else
+    pymega raid -d
+    pymega raid -r 9
+fi
+
 for file in /sys/block/sd*; do
     if [ `cat $file/size` -gt 83886080 ]; then
         if [ `cat $file/removable` -eq 0 ]; then
