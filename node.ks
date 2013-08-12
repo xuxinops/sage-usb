@@ -24,7 +24,7 @@ else
 fi
 %end
 
-%pre --interpreter /usb/bin/python --log=/tmp/pre2.log
+%pre --interpreter /usr/bin/python --log=/tmp/pre2.log
 import os
 path = '/sys/block/'
 
@@ -57,7 +57,7 @@ ret = [i for i in ret if not removable(i)]
 ret = [i for i in ret if size(i)]
 spares = len(ret) - 3
 
-f = open('/tmp/part-include')
+f = open('/tmp/part-include', 'w')
 f.write('clearpart --all\n')
 
 # raid on /
