@@ -22,19 +22,80 @@ else
     pymega raid -d
     pymega raid -r 9
 fi
+%end
 
-for file in /sys/block/sd*; do
-    if [ `cat $file/size` -gt 83886080 ]; then
-        if [ `cat $file/removable` -eq 0 ]; then
-            hd=$(basename $file)
-            echo "clearpart --all --drives=$hd" >> /tmp/part-include
-            echo "part /boot --size=512 --fstype=ext3 --ondisk=$hd" >> /tmp/part-include
-            echo "part / --size=204800 --fstype=ext3 --ondisk=$hd" >> /tmp/part-include
-            echo "part /data --size=204800 --fstype=xfs --ondisk=$hd" >> /tmp/part-include
-        fi
-    fi
-done
-echo "bootloader --location=mbr --driveorder=$hd --append='crashkernel=auto rhgb quiet'" >> /tmp/part-include
+%pre --interpreter /usb/bin/python
+import os
+path = '/sys/block/'
+
+def removable(sda):
+    rm = os.path.join(path, sda, 'removable')
+    with open(rm) as f:
+        ret = f.read().strip()
+        if ret == '0':
+            return False
+        elif ret == '1':
+            return True
+    raise ValueError('unexcepted value of removable')
+
+def size(sda):
+    sz = os.path.join(path, sda, 'size')
+    with open(sz) as f:
+        ret = f.read().strip()
+        if int(ret) >= 83886080:
+            return True
+        else:
+            return False
+
+def number(sda, ptype):
+    if ptype in ['raid', 'pv']:
+        return ptype[0] + sda
+    raise ValueError('only raid/pv are acceptable')
+
+ret = [i for i in os.listdir(path) if i.startswith('sd')]
+ret = [i for i in ret if not removable(i)]
+ret = [i for i in ret if size(i)]
+spares = len(ret) - 3
+
+f = open('/tmp/part-include')
+f.write('clearpart --all\n')
+
+# raid on /
+raids = ''
+for sda in ret:
+    raid = 'raid.r' + number(sda, 'raid')
+    rule = 'part %s --size 200 --ondisk=%s' % (raid, sda)
+    f.write(rule + '\n')
+    raids += raid + ' '
+
+rule = 'raid / --level=1 --device=md0 %s --spares=%d' % (raids, spares)
+f.write(rule + '\n')
+
+# raid on /boot
+raids = ''
+for sda in ret:
+    raid = 'raid.b' + number(sda, 'raid')
+    rule = 'part %s --size 50 --ondisk=%s' % (raid, sda)
+    f.write(rule + '\n')
+    raids += raid + ' '
+
+rule = 'raid /boot --level=1 --device=md1 %s --spares=%d' % (raids, spares)
+f.write(rule + '\n')
+
+# lvm for ceph
+pvs = ''
+for sda in ret:
+    pv = 'pv.c' + number(sda, 'pv')
+    rule = 'part %s --size=1 --grow --ondisk=%s' % (pv, sda)
+    f.write(rule + '\n')
+    pvs += pv + ' '
+rule = 'volgroup vgceph --pesize=32768 %s' % pvs
+f.write(rule + '\n')
+rule = 'logvol /data1 --fstype=xfs --name=lvceph --vgname=vgceph --size=1 --grow'
+f.write(rule + '\n')
+rule = "bootloader --location=mbr --driveorder=sda --append='crashkernel=auto rhgb quiet'"
+f.write(rule + '\n')
+f.close()
 %end
 
 %post
