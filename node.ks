@@ -10,7 +10,7 @@ timezone --utc America/New_York
 %include /tmp/part-include
 repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo
 
-%pre
+%pre --log=/tmp/pre1.log
 mkdir /tmp/ustack-usb
 mount -L ustack-usb /tmp/ustack-usb
 
@@ -24,7 +24,7 @@ else
 fi
 %end
 
-%pre --interpreter /usb/bin/python
+%pre --interpreter /usb/bin/python --log=/tmp/pre2.log
 import os
 path = '/sys/block/'
 
