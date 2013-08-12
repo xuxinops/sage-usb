@@ -102,7 +102,7 @@ rule = 'volgroup vgceph --pesize=32768 %s' % pvs
 f.write(rule + '\n')
 rule = 'logvol /data1 --fstype=xfs --name=lvceph --vgname=vgceph --size=1 --grow'
 f.write(rule + '\n')
-rule = "bootloader --location=mbr --driveorder=sda --append='crashkernel=auto rhgb quiet'"
+rule = "bootloader --location=mbr --driveorder=%s --append='crashkernel=auto rhgb quiet'" % ret[0]
 f.write(rule + '\n')
 f.close()
 %end
