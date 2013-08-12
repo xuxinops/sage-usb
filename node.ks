@@ -60,27 +60,36 @@ spares = max((len(ret) - 3), 0)
 f = open('/tmp/part-include', 'w')
 f.write('clearpart --all\n')
 
-# raid on /
-raids = ''
-for sda in ret:
-    raid = 'raid.r' + number(sda, 'raid')
-    rule = 'part %s --size 200 --ondisk=%s' % (raid, sda)
+if len(ret) >= 2:
+    # raid on /
+    raids = ''
+    for sda in ret:
+        raid = 'raid.r' + number(sda, 'raid')
+        rule = 'part %s --size=2000 --ondisk=%s' % (raid, sda)
+        f.write(rule + '\n')
+        raids += raid + ' '
+
+    rule = 'raid / --level=1 --device=md0 %s --fstype=ext4 --spares=%d' % (raids, spares)
     f.write(rule + '\n')
-    raids += raid + ' '
 
-rule = 'raid / --level=1 --device=md0 %s --spares=%d' % (raids, spares)
-f.write(rule + '\n')
+    # raid on /boot
+    raids = ''
+    for sda in ret:
+        raid = 'raid.b' + number(sda, 'raid')
+        rule = 'part %s --size=500 --ondisk=%s' % (raid, sda)
+        f.write(rule + '\n')
+        raids += raid + ' '
 
-# raid on /boot
-raids = ''
-for sda in ret:
-    raid = 'raid.b' + number(sda, 'raid')
-    rule = 'part %s --size 50 --ondisk=%s' % (raid, sda)
+    rule = 'raid /boot --level=1 --device=md1 %s --fstype=ext4 --spares=%d' % (raids, spares)
     f.write(rule + '\n')
-    raids += raid + ' '
-
-rule = 'raid /boot --level=1 --device=md1 %s --spares=%d' % (raids, spares)
-f.write(rule + '\n')
+elif len(ret) == 1:
+    sda = ret[0]
+    rule = 'part / --size=2000 --ondisk=%s --fstype=ext4' % sda
+    f.write(rule + '\n')
+    rule = 'part /boot --size=500 --ondisk=%s --fstype=ext4' % sda
+    f.write(rule + '\n')
+elif len(ret) == 0:
+    raise ValueError("uOS: you don't have any valid disk")
 
 # lvm for ceph
 pvs = ''
