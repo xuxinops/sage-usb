@@ -55,7 +55,7 @@ def number(sda, ptype):
 ret = [i for i in os.listdir(path) if i.startswith('sd')]
 ret = [i for i in ret if not removable(i)]
 ret = [i for i in ret if size(i)]
-spares = len(ret) - 3
+spares = max((len(ret) - 3), 0)
 
 f = open('/tmp/part-include', 'w')
 f.write('clearpart --all\n')
