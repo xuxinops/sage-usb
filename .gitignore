@@ -6,3 +6,6 @@ repo.conf
 CentOS-6.4-x86_64-minimal.iso
 images/initrd.img
 images/install.img
+iso
+isolinux.cfg
+uOS.iso
