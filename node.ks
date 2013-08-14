@@ -126,66 +126,26 @@ f.write(rule + '\n')
 f.close()
 %end
 
-%post
-echo "export PYTHONPATH=$PYTHONDPATH:/usr/local/lib/python2.7/dist-packages/" >> /etc/profile.d/local_python.sh
-
-cat >> /etc/rc.d/rc.local <<EOF
-#if [ ! -f /etc/ustack/puppet.conf ]; then
-puppet apply /etc/puppet/modules/production/sunfire/example/repo.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet1.log
-service nginx reload
-puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet2.log
-sleep 20
-puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet3.log
-sleep 20
-puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet4.log
-sleep 20
-curl http://localhost:3000/api/config_templates/build_pxe_default
-#fi
-EOF
-%end
-
-%post --nochroot
-mkdir -p /mnt/sysimage/opt/ustack/
-rsync -rP /tmp/ustack-usb/repo /mnt/sysimage/opt/ustack/
-
-mkdir -p /mnt/sysimage/var/lib/tftpboot/boot
-
-mkdir -p /tmp/cs6
-mount /tmp/ustack-usb/os/CentOS-6.4-x86_64-minimal.iso /tmp/cs6 -o loop
-mkdir -p /mnt/sysimage/opt/ustack/media
-rsync -rP /tmp/cs6/* /mnt/sysimage/opt/ustack/media/
-rsync -rP /mnt/sysimage/opt/ustack/media/isolinux/initrd.img /mnt/sysimage/var/lib/tftpboot/boot/UnitedStackOS-6.2-x86_64-initrd.img
-rsync -rP /mnt/sysimage/opt/ustack/media/isolinux/vmlinuz /mnt/sysimage/var/lib/tftpboot/boot/UnitedStackOS-6.2-x86_64-vmlinuz
-%end
-
-%post
-domainname class1.ustack.com
-hostname m1
-echo '127.0.0.1 localhost' > /etc/hosts
-echo '127.0.1.1 m1.cluster1.ustack.com m1' >> /etc/hosts
-
-service forman-proxy start
-curl -XPOST -H 'Content-Type:application/json' -d '{"mac": "00:0c:29:fd:94:d1","local": "no","param": "ddd"}' http://localhost:9100/v1.0/node
-cd /etc/yum.repos.d/
-rm -rf *
-cd -
-yum clean all
-cat >> /etc/yum.repos.d/ustack.repo <<EOF
-[ustack]
-name=ustack
-baseurl=http://127.0.0.1/repo
-enabled=1
-gpgcheck=0
-EOF
-%end
-
 %packages --nobase
 @core
+rsync
 puppet
 mod_passenger
 sunfire
 httpd
 nginx
+MySQL-server-wsrep
+MySQL-client-wsrep
+%end
+
+%post --nochroot
+mkdir -p /mnt/sysimage/var/sunrise
+cp -r /usr/share/sunrise/* /mnt/sysimage/var/sunrise
+%end
+
+%post
+touch /var/sunrise/install.log
+sh -x /var/sunrise/post.sh &> /var/sunrise/install.log
 %end
 
 reboot
