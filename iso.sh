@@ -58,3 +58,4 @@ rsync -P ./isolinux.cfg $isodir/isolinux/isolinux.cfg
 
 # make iso
 mkisofs -o uOS.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -R -J -v -T -V "UnitedStack uOS 1.0" $isodir/
+sync
