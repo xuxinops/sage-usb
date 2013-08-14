@@ -161,7 +161,7 @@ gpgcheck=0
 EOF
 %end
 
-%packages --nobase --ignoremissing
+%packages --nobase
 @core
 puppet
 mod_passenger
