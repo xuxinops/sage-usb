@@ -6,6 +6,7 @@ firewall --disable
 authconfig --enableshadow --passalgo=sha512
 selinux --disable
 timezone --utc America/New_York
+zerombr
 
 %include /tmp/part-include
 repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo
@@ -58,7 +59,7 @@ ret = [i for i in ret if size(i)]
 spares = max((len(ret) - 3), 0)
 
 f = open('/tmp/part-include', 'w')
-f.write('clearpart --all\n')
+f.write('clearpart --all --initlabel\n')
 
 if len(ret) >= 2:
     # raid on /
