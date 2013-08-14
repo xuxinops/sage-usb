@@ -39,6 +39,14 @@ fi
 import os
 path = '/sys/block/'
 
+def disk(sda):
+    if sda.startswith('sd'):
+        return True
+    if sda.startswith('vd'):
+        return True
+    if sda.startswith('hd'):
+        return True
+
 def removable(sda):
     rm = os.path.join(path, sda, 'removable')
     with open(rm) as f:
@@ -63,7 +71,7 @@ def number(sda, ptype):
         return ptype[0] + sda
     raise ValueError('only raid/pv are acceptable')
 
-ret = [i for i in os.listdir(path) if i.startswith('sd')]
+ret = [i for i in os.listdir(path) if disk(i)]
 ret = [i for i in ret if not removable(i)]
 ret = [i for i in ret if size(i)]
 spares = max((len(ret) - 3), 0)
