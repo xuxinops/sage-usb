@@ -9,7 +9,17 @@ timezone --utc America/New_York
 zerombr
 
 %include /tmp/part-include
-repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo
+%include /tmp/repo-include
+
+%pre --interpreter /usr/bin/python --log=/tmp/pre0.log
+import os
+if os.path.exists('/dev/disk/by-label/ustack-usb'):
+    line = 'repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo'
+else:
+    line = 'repo --name=uOS --baseurl=file:/mnt/source/repo'
+with open('/tmp/repo-include', 'w') as f:
+    f.write(line + '\n')
+%end
 
 %pre --log=/tmp/pre1.log
 mkdir /tmp/ustack-usb
