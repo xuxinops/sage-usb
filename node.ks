@@ -25,7 +25,7 @@ else
 fi
 %end
 
-%pre --interpreter /usr/bin/python --log=/tmp/pre2.log
+%pre --interpreter /usr/bin/python --log=/tmp/pre2.log --erroronfail
 import os
 path = '/sys/block/'
 
