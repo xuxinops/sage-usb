@@ -20,6 +20,14 @@ umount $testdir
 rsync -rP repo $isodir/
 rsync -rP node.ks $isodir/
 
+# use custom install.img and initrd.img
+rm -rf $isodir/images/install.img
+rsync -P images/install.img $isodir/images/
+
+rm -rf $isodir/isolinux/initrd.img
+rsync -P images/initrd.img $isodir/isolinux/
+
+
 # modify the isolinux.cfg
 cat >./isolinux.cfg<<EOF
 default vesamenu.c32
@@ -43,7 +51,7 @@ label linux
 menu label ^Install uStack OS!
 menu default
 kernel vmlinuz
-append initrd=initrd.img text ks=cdrom:/node.ks
+append initrd=initrd.img text ks=cdrom:/node.ks asknetwork
 EOF
 
 rsync -P ./isolinux.cfg $isodir/isolinux/isolinux.cfg
