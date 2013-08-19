@@ -7,7 +7,7 @@ rootpw  --iscrypted $6$khisXn4dB6eUgWT6$jA/uAPvJP0brDVqhr/BKpx8l7AQ4EJr36e0tHH/J
 firewall --disable
 authconfig --enableshadow --passalgo=sha512
 selinux --disable
-timezone --utc America/New_York
+timezone --utc Etc/UTC
 zerombr
 
 %include /tmp/part-include
@@ -86,7 +86,7 @@ if len(ret) >= 2:
     raids = ''
     for sda in ret:
         raid = 'raid.r' + number(sda, 'raid')
-        rule = 'part %s --size=2000 --ondisk=%s' % (raid, sda)
+        rule = 'part %s --size=4000 --ondisk=%s' % (raid, sda)
         f.write(rule + '\n')
         raids += raid + ' '
 
@@ -105,7 +105,7 @@ if len(ret) >= 2:
     f.write(rule + '\n')
 elif len(ret) == 1:
     sda = ret[0]
-    rule = 'part / --size=2000 --ondisk=%s --fstype=ext4' % sda
+    rule = 'part / --size=4000 --ondisk=%s --fstype=ext4' % sda
     f.write(rule + '\n')
     rule = 'part /boot --size=500 --ondisk=%s --fstype=ext4' % sda
     f.write(rule + '\n')
@@ -128,6 +128,61 @@ f.write(rule + '\n')
 f.close()
 %end
 
+%post --nochroot --log=/tmp/ks-sync.log
+target=/mnt/sysimage/opt/ustack
+usb=/tmp/ustack-usb
+
+mkdir -p $target
+rsync -rP $usb/repo $target
+
+mkdir -p /tmp/cs6
+mount $usb/os/CentOS-6.4-x86_64-minimal.iso /tmp/cs6 -o loop
+mkdir -p $target/media
+rsync -rP /tmp/cs6/* $target/media/
+
+tftpdir=/mnt/sysimage/var/lib/tftpboot/boot
+mkdir -p $tftpdir
+rsync -rP $target/media/isolinux/initrd.img $tftpdir/UnitedStackOS-6.2-x86_64-initrd.img
+rsync -rP $target/media/isolinux/vmlinuz $tftpdir/UnitedStackOS-6.2-x86_64-vmlinuz
+%end
+
+%post --log=/tmp/post-install.log
+
+# generate rc.local
+cat >> /etc/rc.d/rc.local <<EOF
+if [ ! `rpm -qa foreman` ]; then
+    puppet apply /etc/puppet/modules/production/sunfire/example/repo.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet1.log
+    service nginx reload
+    puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet2.log
+    sleep 20
+    puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet3.log
+    sleep 20
+    puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet4.log
+    sleep 20
+    curl http://localhost:3000/api/config_templates/build_pxe_default
+fi
+EOF
+
+# fix domainname and hostname
+domainname cluster1.ustack.com
+hostname m1
+echo '127.0.0.1 localhost' > /etc/hosts
+echo '127.0.1.1 m1.cluster1.ustack.com m1' >> /etc/hosts
+
+# init ustack.repo and remove others
+cd /etc/yum.repos.d/
+rm -rf *
+cd -
+yum clean all
+cat >> /etc/yum.repos.d/ustack.repo <<EOF
+[ustack]
+name=ustack
+baseurl=http://127.0.0.1/repo
+enabled=1
+gpgcheck=0
+EOF
+%end
+
 %packages --nobase
 @core
 rsync
@@ -138,16 +193,6 @@ httpd
 nginx
 MySQL-server-wsrep
 MySQL-client-wsrep
-%end
-
-%post --nochroot
-mkdir -p /mnt/sysimage/var/sunrise
-cp -r /usr/share/sunrise/* /mnt/sysimage/var/sunrise
-%end
-
-%post
-touch /var/sunrise/install.log
-sh -x /var/sunrise/post.sh &> /var/sunrise/install.log
 %end
 
 reboot
