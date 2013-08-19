@@ -129,16 +129,27 @@ f.close()
 %end
 
 %post --nochroot --log=/tmp/ks-sync.log
-target=/mnt/sysimage/opt/ustack
 usb=/tmp/ustack-usb
+iso=/mnt/source
+if [ -f $usb/node.ks ]; then
+    source=$usb
+else
+    source=$iso
+fi
+
+target=/mnt/sysimage/opt/ustack
 
 mkdir -p $target
-rsync -rP $usb/repo $target
+rsync -rP $source/repo $target
 
-mkdir -p /tmp/cs6
-mount $usb/os/CentOS-6.4-x86_64-minimal.iso /tmp/cs6 -o loop
-mkdir -p $target/media
-rsync -rP /tmp/cs6/* $target/media/
+if [ -f $usb/node.ks ]; then
+    mkdir -p /tmp/cs6
+    mount $source/os/CentOS-6.4-x86_64-minimal.iso /tmp/cs6 -o loop
+    mkdir -p $target/media
+    rsync -rP /tmp/cs6/* $target/media/
+else
+    rsync -rP --exclude=repo $iso/* $target/media/
+fi
 
 tftpdir=/mnt/sysimage/var/lib/tftpboot/boot
 mkdir -p $tftpdir
