@@ -1,5 +1,7 @@
 #version=DEVEL
 install
+lang en_US.UTF-8
+keyboard us
 network --onboot yes --device eth0 --bootproto static --hostname m1
 rootpw  --iscrypted $6$khisXn4dB6eUgWT6$jA/uAPvJP0brDVqhr/BKpx8l7AQ4EJr36e0tHH/J4iPMs9h5oR5B.EzgzB1e8L9ZZkzGnbK9jISQ21YM5zUC40
 firewall --disable
