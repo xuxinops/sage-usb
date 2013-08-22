@@ -80,6 +80,7 @@ spares = max((len(ret) - 3), 0)
 
 f = open('/tmp/part-include', 'w')
 f.write('clearpart --all --initlabel\n')
+f.write('part swap --recommended\n')
 
 if len(ret) >= 2:
     # raid on /
