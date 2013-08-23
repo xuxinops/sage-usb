@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 # Author: Kun Huang <academicgareth@gmail.com>
 
 sda=$1
