@@ -87,7 +87,7 @@ if len(ret) >= 2:
     raids = ''
     for sda in ret:
         raid = 'raid.r' + number(sda, 'raid')
-        rule = 'part %s --size=4000 --ondisk=%s' % (raid, sda)
+        rule = 'part %s --size=8000 --ondisk=%s' % (raid, sda)
         f.write(rule + '\n')
         raids += raid + ' '
 
@@ -106,7 +106,7 @@ if len(ret) >= 2:
     f.write(rule + '\n')
 elif len(ret) == 1:
     sda = ret[0]
-    rule = 'part / --size=4000 --ondisk=%s --fstype=ext4' % sda
+    rule = 'part / --size=8000 --ondisk=%s --fstype=ext4' % sda
     f.write(rule + '\n')
     rule = 'part /boot --size=500 --ondisk=%s --fstype=ext4' % sda
     f.write(rule + '\n')
