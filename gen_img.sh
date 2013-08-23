@@ -9,4 +9,5 @@ fi
 if [ ! -f initrd.img ];then
     wget http://mirrors.163.com/centos/6.4/os/x86_64/isolinux/initrd.img
 fi
+# TODO: check status
 md5sum -c md5.txt
