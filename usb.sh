@@ -47,7 +47,7 @@ label linux
 menu label ^Install uStack OS!
 menu default
 kernel vmlinuz
-append initrd=initrd.img text stage2=hd:UUID=$uuid:/images/install.img ip=static ks=hd:UUID=$uuid:/node.ks repo=hd:UUID=$uuid:/os asknetwork
+append initrd=initrd.img text stage2=hd:UUID=$uuid:/images/install.img ip=static ks=hd:UUID=$uuid:/node.ks repo=hd:UUID=$uuid:/os
 EOF
 
 rsync -P ./extlinux.conf $mnt_point/syslinux/

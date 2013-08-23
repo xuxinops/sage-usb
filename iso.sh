@@ -51,7 +51,7 @@ label linux
 menu label ^Install uStack OS!
 menu default
 kernel vmlinuz
-append initrd=initrd.img text ks=cdrom:/node.ks asknetwork
+append initrd=initrd.img text ks=cdrom:/node.ks
 EOF
 
 rsync -P ./isolinux.cfg $isodir/isolinux/isolinux.cfg
