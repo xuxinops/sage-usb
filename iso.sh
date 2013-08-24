@@ -1,5 +1,5 @@
 #!/bin/bash -xe
-# Author: Kun Huang <academicgareth@gmail.com>
+# Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>
 if [ ! -f CentOS-6.4-x86_64-minimal.iso ]; then
     wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
 fi

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 # Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>
 # Sample: sudo ./update_repo.sh 127.0.0.1 /opt/repo
 
