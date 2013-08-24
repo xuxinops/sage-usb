@@ -10,6 +10,7 @@ mkdir -p $isodir
 
 # copy the image data
 mkdir -p $testdir
+umount $testdir || true # defensive code for retry after some exceptions
 mount CentOS-6.4-x86_64-minimal.iso $testdir -o loop
 rsync -rP $testdir/* $isodir/
 rsync -P $testdir/.discinfo $isodir/
