@@ -156,6 +156,9 @@ tftpdir=/mnt/sysimage/var/lib/tftpboot/boot
 mkdir -p $tftpdir
 rsync -rP $target/media/isolinux/initrd.img $tftpdir/UnitedStackOS-6.2-x86_64-initrd.img
 rsync -rP $target/media/isolinux/vmlinuz $tftpdir/UnitedStackOS-6.2-x86_64-vmlinuz
+
+# copy unitedstack.cfg file
+rsync -P /tmp/unitedstack.cfg /mnt/sysimage/tmp/unitedstack.cfg
 %end
 
 %post --log=/tmp/post-install.log
