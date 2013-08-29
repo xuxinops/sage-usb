@@ -34,7 +34,6 @@ mount -L ustack-usb /tmp/ustack-usb
 adp=`MegaCli -adpCount | grep -i controller | awk '{print $3}'`
 if [[ $adp = 0* ]];then
     pylsi raid -d
-    pylsi raid -r 9
 else
     pymega raid -d
     pymega raid -r 9
