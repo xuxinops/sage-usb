@@ -188,6 +188,16 @@ baseurl=http://127.0.0.1/repo
 enabled=1
 gpgcheck=0
 EOF
+
+# change ethN to master
+cd /etc/sysconfig/network-scripts/
+cfg=`grep USTACK * | awk -F ':' '{print $1}'`
+eth=`echo $cfg | awk -F '-' '{print $2}'`
+
+sed -i -e "s/$eth/master/" $cfg
+
+cd /etc/udev/rules.d/
+sed -i -e "s/$eth/master/" 70-persistent-net.rules
 %end
 
 %packages --nobase
