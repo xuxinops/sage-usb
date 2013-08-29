@@ -168,19 +168,7 @@ rsync -P /tmp/unitedstack.cfg /mnt/sysimage/tmp/unitedstack.cfg
 %post --log=/tmp/post-install.log
 
 # generate rc.local
-cat >> /etc/rc.d/rc.local <<EOF
-if [ ! `rpm -qa foreman` ]; then
-    puppet apply /etc/puppet/modules/production/sunfire/example/repo.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet1.log
-    service nginx reload
-    puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet2.log
-    sleep 20
-    puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet3.log
-    sleep 20
-    puppet apply /etc/puppet/modules/production/sunfire/example/masternode.pp --modulepath /etc/puppet/modules/production &> /tmp/ustack-puppet4.log
-    sleep 20
-    curl http://localhost:3000/api/config_templates/build_pxe_default
-fi
-EOF
+# TODO do something here
 
 # fix domainname and hostname
 domainname cluster1.ustack.com
@@ -210,8 +198,8 @@ mod_passenger
 sunfire
 httpd
 nginx
-MySQL-server-wsrep
-MySQL-client-wsrep
+mysql
+mysql-server
 %end
 
 reboot
