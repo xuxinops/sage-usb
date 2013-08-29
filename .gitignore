@@ -1,7 +1,9 @@
 livecd
 CentOS-6.4-x86_64-netinstall.iso
 extlinux.conf
-repo
+repo/storm
+repo/sunfire
+repo/ustack
 repo.conf
 CentOS-6.4-x86_64-minimal.iso
 images/initrd.img

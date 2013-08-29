@@ -16,11 +16,15 @@ zerombr
 %pre --interpreter /usr/bin/python --log=/tmp/pre0.log
 import os
 if os.path.exists('/dev/disk/by-label/ustack-usb'):
-    line = 'repo --name=uOS --baseurl=file:/tmp/ustack-usb/repo'
+    lines = 'repo --name=ustack --baseurl=file:/tmp/ustack-usb/repo/ustack\n' \
+            'repo --name=sunfire --baseurl=file:/tmp/ustack-usb/repo/sunfire\n' \
+            'repo --name=storm --baseurl=file:/tmp/ustack-usb/repo/storm\n'
 else:
-    line = 'repo --name=uOS --baseurl=file:/mnt/source/repo'
+    lines = 'repo --name=ustack --baseurl=file:/mnt/source/repo/ustack\n' \
+            'repo --name=sunfire --baseurl=file:/mnt/source/repo/sunfire\n' \
+            'repo --name=storm --baseurl=file:/mnt/source/repo/storm\n'
 with open('/tmp/repo-include', 'w') as f:
-    f.write(line + '\n')
+    f.write(lines + '\n')
 %end
 
 %pre --log=/tmp/pre1.log
