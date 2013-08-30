@@ -11,7 +11,7 @@ mkdir -p repo/sunfire
 mkdir -p repo/ustack
 
 cd repo
-if [ "$server" -eq "127.0.0.1" ]; then
+if [ "$server" = "127.0.0.1" ]; then
     rsync -Pr $sunfire_dir/* sunfire/
     rsync -Pr $storm_dir/* storm/
     rsync -Pr $ustack_dir/* ustack/
