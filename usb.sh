@@ -6,6 +6,10 @@ sda1="$1""1"
 mnt_point=/tmp/usb_hk
 mkdir -p $mnt_point
 umount $sda1 || true
+
+parted -s $sda mklabel msdos
+parted -s $sda mkpart primary 1 100%
+
 dd if=/dev/zero of=$sda bs=512 count=1 # clear partition
 echo -ne "n\np\n1\n\n\nw\n" | fdisk $sda # format sdX1
 mkfs.ext4 $sda1 # use ext4
