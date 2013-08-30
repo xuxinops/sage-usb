@@ -22,7 +22,8 @@ rsync -rP repo $isodir/
 rsync -rP node.ks $isodir/
 
 # use custom install.img and initrd.img
-rm -rf $isodir/images/*
+mv $isodir/images/install.img $isodir/images/install.img.bak
+rm -rf $isodir/images/*.img
 rsync -P images/install.img $isodir/images/
 
 rm -rf $isodir/isolinux/initrd.img

@@ -153,6 +153,7 @@ if [ -f $usb/node.ks ]; then
     rsync -rP /tmp/cs6/* $target/media/
 else
     rsync -rP --exclude=repo $iso/* $target/media/
+    mv $target/media/install.img.bak $target/media/install.img -f
 fi
 
 tftpdir=/mnt/sysimage/var/lib/tftpboot/boot
