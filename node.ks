@@ -2,7 +2,7 @@
 install
 lang en_US.UTF-8
 keyboard us
-network --onboot yes --device eth0 --bootproto static --hostname m1
+network --onboot yes --device eth0 --bootproto static --hostname us1
 rootpw  --iscrypted $6$khisXn4dB6eUgWT6$jA/uAPvJP0brDVqhr/BKpx8l7AQ4EJr36e0tHH/J4iPMs9h5oR5B.EzgzB1e8L9ZZkzGnbK9jISQ21YM5zUC40
 firewall --disable
 authconfig --enableshadow --passalgo=sha512
@@ -168,26 +168,65 @@ rsync -P /tmp/unitedstack.cfg /mnt/sysimage/tmp/unitedstack.cfg
 %post --log=/tmp/post-install.log
 
 # generate rc.local
-# TODO do something here
+cat >> /etc/rc.d/rc.local <<EOF
+address_info=$(ifconfig ${nic} | grep -w inet)
+if [ x"${address_info}" != "x" ]
+then
+    ip_address=$(echo ${address_info} | awk '{print $2}' | cut -d ':' -f2)
+fi
+
+default_route_info=$(ip route | grep default)
+if [ x"${default_route_info}" != "x" ]
+then
+    gateway_address=$(echo ${default_route_info} | awk '{print $3}')
+fi
+
+cat > /tmp/setup_masternode.pp << EOG
+class {'sunfire::masternode':
+  us_enable_openstack => true,
+  us_foreman_url => 'http://127.0.0.1',
+  us_puppetmaster_url => 'us1.ustack.in',
+}
+EOG
+
+puppet apply  /tmp/setup_masternode.pp --modulepath=/etc/puppet/modules/production > /tmp/masternode.log
+EOF
+
 
 # fix domainname and hostname
-domainname cluster1.ustack.com
-hostname m1
+domainname ustack.in 
+hostname us1
 echo '127.0.0.1 localhost' > /etc/hosts
-echo '127.0.1.1 m1.cluster1.ustack.com m1' >> /etc/hosts
+echo '127.0.1.1 us1.ustack.in us1' >> /etc/hosts
 
 # init ustack.repo and remove others
 cd /etc/yum.repos.d/
 rm -rf *
 cd -
 yum clean all
+
 cat >> /etc/yum.repos.d/ustack.repo <<EOF
+[sunfire]
+name=Packages for Sunfire - $basearch
+baseurl=http://127.0.0.1/repo/sunfire
+enabled=1
+gpgcheck=0
+[storm]
+name=Packages for Storm - $basearch
+baseurl=http://127.0.0.1/repo/storm
+enabled=1
+gpgcheck=0
 [ustack]
-name=ustack
-baseurl=http://127.0.0.1/repo
+name=Packages for uStack - $basearch
+baseurl=http://127.0.0.1/repo/ustack
 enabled=1
 gpgcheck=0
 EOF
+
+cat > /tmp/setup_repo.pp << EOF
+class {'sunfire::repo':}
+EOF
+puppet apply /tmp/setup_repo.pp --modulepath=/etc/puppet/modules/production -v > /tmp/repo.log
 
 # change ethN to master
 cd /etc/sysconfig/network-scripts/
@@ -206,10 +245,11 @@ rsync
 puppet
 mod_passenger
 sunfire
+storm
 httpd
 nginx
 mysql
 mysql-server
 %end
 
-reboot
+reboot --eject
