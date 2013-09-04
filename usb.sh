@@ -10,7 +10,14 @@ umount $sda1 || true
 parted -s $sda mklabel msdos
 parted -s $sda mkpart primary 1 100%
 
-dd if=/dev/zero of=$sda bs=512 count=1 # clear partition
+# dd if=/dev/zero of=$sda bs=512 count=1 # clear partition
+# This line above works for all cases except gpt table. To erase gpt table we
+# need to remove both begining and ending sectors on a hard dirve.
+# more details: http://en.wikipedia.org/wiki/GUID_Partition_Table
+dd if=/dev/zero of=$sda bs=512 count=340
+sec_sz=$((`blockdev --getsz $sda` - 340))
+dd if=/dev/zero of=$sda bs=512 count=340 seek=$sec_sz
+
 echo -ne "n\np\n1\n\n\nw\n" | fdisk $sda # format sdX1
 mkfs.ext4 $sda1 # use ext4
 
