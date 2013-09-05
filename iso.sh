@@ -1,8 +1,13 @@
 #!/bin/bash -xe
 # Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>
+
+TOP_DIR=$(cd $(dirname "$0") && pwd)
+cd $TOP_DIR
+
 if [ ! -f CentOS-6.4-x86_64-minimal.iso ]; then
     wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
 fi
+
 isodir=iso
 testdir=test
 rm -rf $isodir
@@ -12,22 +17,22 @@ mkdir -p $isodir
 mkdir -p $testdir
 umount $testdir || true # defensive code for retry after some exceptions
 mount CentOS-6.4-x86_64-minimal.iso $testdir -o loop
-rsync -rP $testdir/* $isodir/
-rsync -P $testdir/.discinfo $isodir/
-rsync -P $testdir/.treeinfo $isodir/
+rsync -aP $testdir/* $isodir/
+rsync -aP $testdir/.discinfo $isodir/
+rsync -aP $testdir/.treeinfo $isodir/
 umount $testdir
 
 # copy repo and node.ks
-rsync -rP repo $isodir/
-rsync -rP node.ks $isodir/
+rsync -aP repo $isodir/
+rsync -aP node.ks $isodir/
 
 # use custom install.img and initrd.img
 mv $isodir/images/install.img $isodir/images/install.img.bak
 rm -rf $isodir/images/*.img
-rsync -P images/install.img $isodir/images/
+rsync -aP images/install.img $isodir/images/
 
 rm -rf $isodir/isolinux/initrd.img
-rsync -P images/initrd.img $isodir/isolinux/
+rsync -aP images/initrd.img $isodir/isolinux/
 
 
 # modify the isolinux.cfg
@@ -56,8 +61,10 @@ kernel vmlinuz
 append initrd=initrd.img text ks=cdrom:/node.ks
 EOF
 
-rsync -P ./isolinux.cfg $isodir/isolinux/isolinux.cfg
+rsync -aP ./isolinux.cfg $isodir/isolinux/isolinux.cfg
 
 # make iso
 mkisofs -o uOS.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -R -J -v -T -V "UnitedStack uOS 1.0" $isodir/
 sync
+
+echo 'Wrote '${TOP_DIR}'/uOS.iso'
