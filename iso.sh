@@ -4,6 +4,10 @@
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 cd $TOP_DIR
 
+source $TOP_DIR/functions
+
+CheckBinPKG wget
+
 if [ ! -f CentOS-6.4-x86_64-minimal.iso ]; then
     wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
 fi
@@ -12,6 +16,10 @@ isodir=iso
 testdir=test
 rm -rf $isodir
 mkdir -p $isodir
+
+CheckBinPKG rsync
+CheckBinPKG umount
+CheckBinPKG mount
 
 # copy the image data
 mkdir -p $testdir
@@ -62,6 +70,8 @@ append initrd=initrd.img text ks=cdrom:/node.ks
 EOF
 
 rsync -aP ./isolinux.cfg $isodir/isolinux/isolinux.cfg
+
+CheckBinPKG mkisofs
 
 # make iso
 mkisofs -o uOS.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -R -J -v -T -V "UnitedStack uOS 1.0" $isodir/
