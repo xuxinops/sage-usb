@@ -1,0 +1,3 @@
+[submodule "sage-images"]
+    path = sage-images
+    url = git@git.ustack.com:ustack/sage-images.git
