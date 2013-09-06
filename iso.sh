@@ -36,20 +36,10 @@ rsync -aP node.ks $isodir/
 
 # use custom install.img and initrd.img
 cd $TOP_DIR/sage-images/iso-initrd/
-if [ ! -d initrd-dir ];then
-    ./fetch.sh
-    ./decomp.sh
-fi
-./build.sh
-./comp.sh
+./rebuild.sh
 
 cd $TOP_DIR/sage-images/stage2/
-if [ ! -d squashfs-root ];then
-    ./fetch.sh
-    ./decomp.sh
-fi
-./build.sh
-./comp.sh
+./rebuild.sh
 
 cd $TOP_DIR
 mv $isodir/images/install.img $isodir/images/install.img.bak
