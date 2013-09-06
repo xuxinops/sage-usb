@@ -25,22 +25,39 @@ CheckBinPKG mount
 mkdir -p $testdir
 umount $testdir || true # defensive code for retry after some exceptions
 mount CentOS-6.4-x86_64-minimal.iso $testdir -o loop
-rsync -aP $testdir/* $isodir/
+rsync -a $testdir/* $isodir/
 rsync -aP $testdir/.discinfo $isodir/
 rsync -aP $testdir/.treeinfo $isodir/
 umount $testdir
 
 # copy repo and node.ks
-rsync -aP repo $isodir/
+rsync -a repo $isodir/
 rsync -aP node.ks $isodir/
 
 # use custom install.img and initrd.img
+cd $TOP_DIR/sage-images/iso-initrd/
+if [ ! -d initrd-dir ];then
+    ./fetch.sh
+    ./decomp.sh
+fi
+./build.sh
+./comp.sh
+
+cd $TOP_DIR/sage-images/stage2/
+if [ ! -d squashfs-root ];then
+    ./fetch.sh
+    ./decomp.sh
+fi
+./build.sh
+./comp.sh
+
+cd $TOP_DIR
 mv $isodir/images/install.img $isodir/images/install.img.bak
 rm -rf $isodir/images/*.img
-rsync -aP images/install.img $isodir/images/
+rsync -aP sage-images/stage2/install.img $isodir/images/
 
 rm -rf $isodir/isolinux/initrd.img
-rsync -aP images/initrd.img $isodir/isolinux/
+rsync -aP sage-images/iso-initrd/initrd.img $isodir/isolinux/
 
 
 # modify the isolinux.cfg
