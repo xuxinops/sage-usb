@@ -1,16 +1,19 @@
-#!/bin/bash -xe
-# Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>
+#!/bin/bash
+# Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>, Xin Xu <xuxin@unitedstack.com>
 
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 cd $TOP_DIR
 
 source $TOP_DIR/functions
 
-CheckBinPKG wget
-
-if [ ! -f CentOS-6.4-x86_64-minimal.iso ]; then
-    wget http://mirrors.163.com/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
+if [[ ! -r $TOP_DIR/sagerc ]]; then
+    echo "Line: $LINENO missing $TOP_DIR/sagerc - did you grab more than just iso.sh?"
+    exit 1
 fi
+
+source $TOP_DIR/sagerc
+
+GetBaseISO
 
 isodir=iso
 testdir=test
@@ -24,7 +27,7 @@ CheckBinPKG mount
 # copy the image data
 mkdir -p $testdir
 umount $testdir || true # defensive code for retry after some exceptions
-mount CentOS-6.4-x86_64-minimal.iso $testdir -o loop
+mount $BASE_ISO $testdir -o loop
 rsync -a $testdir/* $isodir/
 rsync -aP $testdir/.discinfo $isodir/
 rsync -aP $testdir/.treeinfo $isodir/

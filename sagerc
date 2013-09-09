@@ -1,0 +1,4 @@
+#sagerc
+
+BASE_URL='mirrors.sohu.com'
+BASE_ISO_VERSION='6.4'

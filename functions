@@ -152,6 +152,68 @@ function CheckBinPKG() {
     fi
 }
 
+function cfont() {
+    while (($#!=0))
+    do
+        case $1 in
+            -b)
+                echo -ne " ";
+                ;;
+            -t)
+                echo -ne "\t";
+                ;;
+            -n)
+                echo -ne "\n";
+                ;;
+            -red)
+                echo -ne "\033[31m";
+                ;;
+            -yellow)
+                echo -ne "\033[33m";
+                ;;
+            -reset)
+                echo -ne "\033[0m";
+                ;;
+            -h|-help|--help)
+                echo "Usage: cfont -color1 message1 -color2 message2 ...";
+                echo "eg:       cfont -red [ -blue message1 message2 -red ]";
+                ;;
+            *)
+                echo -ne "$1"
+                ;;
+        esac
+        shift
+    done
+}
+
+function GetBaseISO() {
+    CheckBinPKG wget
+    CheckBinPKG curl
+
+    BASE_ISO="CentOS-${BASE_ISO_VERSION}-x86_64-minimal.iso"
+    BASE_ISO_HASH_INFO=$(curl -m 3 http://${BASE_URL}/centos/${BASE_ISO_VERSION}/isos/x86_64/md5sum.txt -w %{http_code} -s -S)
+    BASE_ISO_HASH_STAT=$(echo "$BASE_ISO_HASH_INFO" | tail -1)
+
+    if [[ $BASE_ISO_HASH_STAT != 200 ]]; then
+        cfont -n -red "ERR: Could not get BASE_ISO_HASH from $BASE_URL, ERRNO: $BASE_ISO_HASH_STAT" -reset -n
+        exit 1;
+    fi
+
+    BASE_ISO_HASH=$(echo "$BASE_ISO_HASH_INFO" | awk -v iso=${BASE_ISO} '{if($2==iso)print $1}')
+
+    while :
+    do
+        if [[ $(md5sum $BASE_ISO | awk '{print $1}') != "${BASE_ISO_HASH}"  ]]; then
+            ((i++))
+            cfont -n -yellow "the $i times download try: " -reset -n
+            wget -c -t 1 --timeout 8 -N http://${BASE_URL}/centos/${BASE_ISO_VERSION}/isos/x86_64/${BASE_ISO}
+        else
+            break
+        fi
+    done
+}
+
+
 # Restore xtrace
 $XTRACE
 
