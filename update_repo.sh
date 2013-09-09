@@ -1,23 +1,32 @@
 #!/bin/bash -xe
-# Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>
-# Sample: sudo ./update_repo.sh 127.0.0.1 /opt/repo
+# Author: Kun Huang <academicgareth@gmail.com>, DennyZhang <denny@unitedstack.com>, Xin Xu <xuxin@unitedstack.com>
+# Sample: sudo ./update_repo.sh 127.0.0.1 local /opt/repo
+# Sample: sudo ./update_repo.sh 192.168.1.5 remote urepo
 
 server=${1:-192.168.1.5}
-sunfire_dir=${2:-/data1/mirrors/sunfire/RPMS/x86_64}
-storm_dir=${2:-/data1/mirrors/storm/RPMS/x86_64}
-ustack_dir=${2:-/data1/mirrors/ustack/RPMS/x86_64}
-mkdir -p repo/storm
-mkdir -p repo/sunfire
-mkdir -p repo/ustack
+sync_src=${3:-urepo}
+sync_method=${2:-remote}
 
-cd repo
-if [ "$server" = "127.0.0.1" ]; then
-    rsync -Pr $sunfire_dir/* sunfire/
-    rsync -Pr $storm_dir/* storm/
-    rsync -Pr $ustack_dir/* ustack/
-else
-    rsync -Pr root@$server:$sunfire_dir/* sunfire/
-    rsync -Pr root@$server:$storm_dir/* storm/
-    rsync -Pr root@$server:$ustack_dir/* ustack/
-fi;
-cd ..
+repos='sunfire storm ustack'
+
+case $sync_method in
+    'remote')
+        method="rsync -aP root@${server}::$sync_src/"
+        ;;
+    'local')
+        method="rsync -aP $sync_src/"
+        ;;
+    *)
+        echo 'unknow method, only support remote and local method'
+        exit 1;
+        ;;
+esac
+
+for i in $repos
+do
+    src_dir=${i}'/RPMS/x86_64'
+    tgt_dir='repo/'${i}
+    mkdir -p ${tgt_dir}
+    ${method}${src_dir}/ ${tgt_dir}/
+done
+
