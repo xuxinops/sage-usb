@@ -117,19 +117,69 @@ elif len(ret) == 0:
     raise ValueError("uOS: you don't have any valid disk")
 
 # lvm for ceph
-pvs = ''
-for sda in ret:
-    pv = 'pv.c' + number(sda, 'pv')
-    rule = 'part %s --size=1 --grow --ondisk=%s' % (pv, sda)
+if 'ceph need' == 'lvm':
+    # this is moved to posted
+    pvs = ''
+    for sda in ret:
+        pv = 'pv.c' + number(sda, 'pv')
+        rule = 'part %s --size=1 --grow --ondisk=%s' % (pv, sda)
+        f.write(rule + '\n')
+        pvs += pv + ' '
+    rule = 'volgroup vgceph --pesize=32768 %s' % pvs
     f.write(rule + '\n')
-    pvs += pv + ' '
-rule = 'volgroup vgceph --pesize=32768 %s' % pvs
-f.write(rule + '\n')
-rule = 'logvol /data1 --fstype=xfs --name=lvceph --vgname=vgceph --size=1 --grow'
-f.write(rule + '\n')
+    rule = 'logvol /data1 --fstype=xfs --name=lvceph --vgname=vgceph --size=1 --grow'
+    f.write(rule + '\n')
+
 rule = "bootloader --location=mbr --driveorder=%s --append='crashkernel=auto rhgb quiet'" % ret[0]
 f.write(rule + '\n')
 f.close()
+%end
+
+%post --nochroot --log=/tmp/ks-sdx3.log --interpreter /usr/bin/python
+# do sdX3 formatting, this is temp work for puppet
+# TODO: remove it in plan
+import os
+path = '/sys/block/'
+
+def disk(sda):
+    if sda.startswith('sd'):
+        return True
+    if sda.startswith('vd'):
+        return True
+    if sda.startswith('hd'):
+        return True
+
+def removable(sda):
+    rm = os.path.join(path, sda, 'removable')
+    with open(rm) as f:
+        ret = f.read().strip()
+        if ret == '0':
+            return False
+        elif ret == '1':
+            return True
+    raise ValueError('unexcepted value of removable')
+
+def size(sda):
+    sz = os.path.join(path, sda, 'size')
+    with open(sz) as f:
+        ret = f.read().strip()
+        if int(ret) >= 83886080:
+            return True
+        else:
+            return False
+
+def number(sda, ptype):
+    if ptype in ['raid', 'pv']:
+        return ptype[0] + sda
+    raise ValueError('only raid/pv are acceptable')
+
+ret = [i for i in os.listdir(path) if disk(i)]
+ret = [i for i in ret if not removable(i)]
+ret = [i for i in ret if size(i)]
+
+for sda in ret:
+    cmd = "parted -s /dev/%s mkpart primary 17.3G 100%%" % sda
+    os.system(cmd)
 %end
 
 %post --nochroot --log=/tmp/ks-sync.log
@@ -194,7 +244,7 @@ EOF
 
 
 # fix domainname and hostname
-domainname ustack.in 
+domainname ustack.in
 hostname us1
 echo '127.0.0.1 localhost' > /etc/hosts
 echo '127.0.1.1 us1.ustack.in us1' >> /etc/hosts
