@@ -72,11 +72,22 @@ if [ ! -f CentOS-6.4-x86_64-minimal.iso ];then
 fi
 rsync -Pr CentOS-6.4-x86_64-minimal.iso $mnt_point/os/
 
-rm $mnt_point/images/install.img
-rsync -P ./images/install.img $mnt_point/images/
+TOP_DIR=$(cd $(dirname "$0") && pwd)
+cd $TOP_DIR
+
+# use custom install.img and initrd.img
+cd $TOP_DIR/sage-images/iso-initrd/
+./rebuild.sh
+
+cd $TOP_DIR/sage-images/stage2/
+./rebuild.sh
+
+cd $TOP_DIR
+mv $mnt_point/images/install.img $mnt_point/images/install.img.bak
+rsync -P ./sage-images/stage2/install.img $mnt_point/images/
 
 rm $mnt_point/syslinux/initrd.img
-rsync -P ./images/initrd.img $mnt_point/syslinux/
+rsync -P ./sage-images/iso-initrd/initrd.img $mnt_point/syslinux/
 
 rsync -P node.ks $mnt_point/node.ks
 
