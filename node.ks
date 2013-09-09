@@ -282,8 +282,10 @@ puppet apply /tmp/setup_repo.pp --modulepath=/etc/puppet/modules/production -v >
 cd /etc/sysconfig/network-scripts/
 cfg=`grep USTACK * | awk -F ':' '{print $1}'`
 eth=`echo $cfg | awk -F '-' '{print $2}'`
+echo "$eth has been convert into master"
 
 sed -i -e "s/$eth/master/" $cfg
+mv $cfg ifcfg-master
 
 cd /etc/udev/rules.d/
 sed -i -e "s/$eth/master/" 70-persistent-net.rules
