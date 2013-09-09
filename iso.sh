@@ -33,9 +33,13 @@ umount $testdir
 # copy repo and node.ks
 rsync -a repo $isodir/
 rsync -aP node.ks $isodir/
+rsync -aP pxe.ks $isodir/pxeboot/
 
 # use custom install.img and initrd.img
 cd $TOP_DIR/sage-images/iso-initrd/
+./rebuild.sh
+
+cd $TOP_DIR/sage-images/pxe-initrd/
 ./rebuild.sh
 
 cd $TOP_DIR/sage-images/stage2/
@@ -49,6 +53,8 @@ rsync -aP sage-images/stage2/install.img $isodir/images/
 rm -rf $isodir/isolinux/initrd.img
 rsync -aP sage-images/iso-initrd/initrd.img $isodir/isolinux/
 
+mkdir -p $isodir/pxeboot/
+rsync -aP sage-images/pxe-initrd/initrd.img $isodir/pxeboot/
 
 # modify the isolinux.cfg
 cat >./isolinux.cfg<<EOF

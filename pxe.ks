@@ -208,9 +208,7 @@ fi
 
 tftpdir=/mnt/sysimage/var/lib/tftpboot/boot
 mkdir -p $tftpdir
-rsync -rP $source/pxeboot/initrd.img $tftpdir/UnitedStackOS-6.2-x86_64-initrd.img
-rsync -rP $source/pxeboot/pxe.ks $target/media/ks.cfg
-rsync -rP $source/pxeboot/pxe.ks $target/media/
+rsync -rP $target/media/isolinux/initrd.img $tftpdir/UnitedStackOS-6.2-x86_64-initrd.img
 rsync -rP $target/media/isolinux/vmlinuz $tftpdir/UnitedStackOS-6.2-x86_64-vmlinuz
 
 # copy unitedstack.cfg file
