@@ -1,5 +1,19 @@
 #!/bin/bash -xe
-# Author: Kun Huang <academicgareth@gmail.com>
+# Author: Kun Huang <academicgareth@gmail.com>, Xin Xu <xuxin@unitedstack.com>
+
+TOP_DIR=$(cd $(dirname "$0") && pwd)
+cd $TOP_DIR
+
+source $TOP_DIR/functions
+
+if [[ ! -r $TOP_DIR/sagerc ]]; then
+    cfont -n -red "Line: $LINENO missing $TOP_DIR/sagerc - did you grab more than just iso.sh?" -reset -n
+    exit 1
+fi
+
+source $TOP_DIR/sagerc
+
+UpdateRepo
 
 sda=$1
 sda1="$1""1"

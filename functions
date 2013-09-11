@@ -192,6 +192,12 @@ function cfont() {
     done
 }
 
+function CheckEXEC() {
+    MSG="\"$1: \""
+    eval "$2" && MSG="$MSG -green [OK] -reset -n" || MSG="$MSG -red [FAIL] -reset -n; exit 1; "
+    eval "cfont -white $MSG"
+}
+
 function GetBaseISO() {
     CheckBinPKG wget
     CheckBinPKG curl
@@ -220,8 +226,8 @@ function GetBaseISO() {
 }
 
 function UmountDir() {
-    i=0
-    MOUNT_DIR=$1
+    local i=0
+    local MOUNT_DIR=$1
 
     while :
     do
@@ -242,6 +248,31 @@ function UmountDir() {
 
             break
         fi
+    done
+}
+
+function TripDIR() {
+    eval "echo \$$1" | grep -q "^/.\+" || eval "$1=${TOP_DIR}/\$$1"
+}
+
+function UpdateRepo() {
+    TripDIR REPO_DIR
+
+    case $REPO_SERVER in
+        'local'|'127.0.0.1'|'localhost')
+            method="rsync -a $sync_src/"
+            ;;
+        *)
+            method="rsync -a root@${REPO_SERVER}::$REPO_MODULE/"
+            ;;
+    esac
+
+    for i in $REPO_LIST
+    do
+        src_dir=${i}'/RPMS/x86_64'
+        tgt_dir=${REPO_DIR}/${i}
+        mkdir -p ${tgt_dir}
+        CheckEXEC "Copy files from $(echo $method|sed -e 's#^rsync -aP ##')$src_dir to $tgt_dir" "${method}${src_dir}/ ${tgt_dir}/"
     done
 }
 
