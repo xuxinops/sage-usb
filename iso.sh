@@ -23,24 +23,19 @@ CheckBinPKG mount
 CheckBinPKG fuser
 
 # copy the image data
-echo $MOUNT_DIR | grep -q "^/.\+" || MOUNT_DIR=${TOP_DIR}/${MOUNT_DIR}
+TripDIR MOUNT_DIR
+
 mkdir -p $MOUNT_DIR
 UmountDir $MOUNT_DIR
 
-cfont -white "Mount $BASE_ISO on ${MOUNT_DIR}: " -reset
-mount $BASE_ISO $MOUNT_DIR -o loop -r && cfont -green "[OK]" -reset -n || {
-cfont -red "[FAIL]" -reset -n
-exit 1
-}
+CheckEXEC "Mount $BASE_ISO on ${MOUNT_DIR}" "mount $BASE_ISO $MOUNT_DIR -o loop -r"
 
-cfont -white "Copy files from $BASE_ISO to ${DEST_DIR}: " -reset
-rsync -a --delete ${MOUNT_DIR}/ ${DEST_DIR}/ && cfont -green "[OK]" -reset -n || {
-cfont -red "[FAIL]" -reset -n
-exit 1
-}
+CheckEXEC "Copy files from $BASE_ISO to ${DEST_DIR}" "rsync -a ${MOUNT_DIR}/ ${DEST_DIR}/"
 UmountDir $MOUNT_DIR
 
 # copy repo and node.ks
+UpdateRepo
+
 rsync -a repo ${DEST_DIR}/
 rsync -aP node.ks ${DEST_DIR}/
 rsync -aP pxe.ks ${DEST_DIR}/pxeboot/
