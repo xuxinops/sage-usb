@@ -229,6 +229,9 @@ function UmountDir() {
     local i=0
     local MOUNT_DIR=$1
 
+    CheckBinPKG mount
+    CheckBinPKG fuser
+
     while :
     do
         ((i++))

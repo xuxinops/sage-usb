@@ -15,30 +15,30 @@ source $TOP_DIR/sagerc
 
 GetBaseISO
 
-rm -rf $DEST_DIR
-mkdir -p $DEST_DIR
-
-CheckBinPKG rsync
-CheckBinPKG mount
-CheckBinPKG fuser
-
 # copy the image data
 TripDIR MOUNT_DIR
+TripDIR DEST_DIR
+
+rm -rf $DEST_DIR
+mkdir -p $DEST_DIR
 
 mkdir -p $MOUNT_DIR
 UmountDir $MOUNT_DIR
 
 CheckEXEC "Mount $BASE_ISO on ${MOUNT_DIR}" "mount $BASE_ISO $MOUNT_DIR -o loop -r"
 
+CheckBinPKG rsync
 CheckEXEC "Copy files from $BASE_ISO to ${DEST_DIR}" "rsync -a ${MOUNT_DIR}/ ${DEST_DIR}/"
 UmountDir $MOUNT_DIR
 
 # copy repo and node.ks
 UpdateRepo
 
-rsync -a repo ${DEST_DIR}/
-rsync -aP node.ks ${DEST_DIR}/
-rsync -aP pxe.ks ${DEST_DIR}/pxeboot/
+CheckEXEC "Copy files from $REPO_DIR to ${DEST_DIR}" "rsync -a $REPO_DIR ${DEST_DIR}/"
+CheckEXEC "Copy files from node.ks to ${DEST_DIR}" "rsync -a node.ks ${DEST_DIR}/"
+CheckEXEC "Copy files from pxe.ks to ${DEST_DIR}/pxeboot" "rsync -a pxe.ks ${DEST_DIR}/pxeboot/"
+
+exit;
 
 # use custom install.img and initrd.img
 cd $TOP_DIR/sage-images/iso-initrd/
