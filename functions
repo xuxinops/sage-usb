@@ -171,6 +171,12 @@ function cfont() {
             -yellow)
                 echo -ne "\033[33m";
                 ;;
+            -green)
+                echo -ne "\033[32m";
+                ;;
+            -white|-gray)
+                echo -ne "\033[37m";
+                ;;
             -reset)
                 echo -ne "\033[0m";
                 ;;
@@ -213,6 +219,31 @@ function GetBaseISO() {
     done
 }
 
+function UmountDir() {
+    i=0
+    MOUNT_DIR=$1
+
+    while :
+    do
+        ((i++))
+
+        if [[ $(mount | awk -v mount=$MOUNT_DIR '$3==mount') ]]; then
+            if [[ $i != 1 ]]; then
+                cfont -red "[FAIL]" -reset -n
+            fi
+
+            cfont -white "the $i times umount $MOUNT_DIR: " -reset
+            umount $MOUNT_DIR || fuser -k -9 $MOUNT_DIR
+            sleep 1
+        else
+            if [[ $i != 1 ]]; then
+                cfont -green "[OK]" -reset -n
+            fi
+
+            break
+        fi
+    done
+}
 
 # Restore xtrace
 $XTRACE

@@ -2,3 +2,5 @@
 
 BASE_URL='mirrors.sohu.com'
 BASE_ISO_VERSION='6.4'
+DEST_DIR='iso'
+MOUNT_DIR='mnt'

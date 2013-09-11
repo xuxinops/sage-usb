@@ -7,7 +7,7 @@ cd $TOP_DIR
 source $TOP_DIR/functions
 
 if [[ ! -r $TOP_DIR/sagerc ]]; then
-    echo "Line: $LINENO missing $TOP_DIR/sagerc - did you grab more than just iso.sh?"
+    cfont -n -red "Line: $LINENO missing $TOP_DIR/sagerc - did you grab more than just iso.sh?" -reset -n
     exit 1
 fi
 
@@ -15,28 +15,35 @@ source $TOP_DIR/sagerc
 
 GetBaseISO
 
-isodir=iso
-testdir=test
-rm -rf $isodir
-mkdir -p $isodir
+rm -rf $DEST_DIR
+mkdir -p $DEST_DIR
 
 CheckBinPKG rsync
-CheckBinPKG umount
 CheckBinPKG mount
+CheckBinPKG fuser
 
 # copy the image data
-mkdir -p $testdir
-umount $testdir || true # defensive code for retry after some exceptions
-mount $BASE_ISO $testdir -o loop
-rsync -a $testdir/* $isodir/
-rsync -aP $testdir/.discinfo $isodir/
-rsync -aP $testdir/.treeinfo $isodir/
-umount $testdir
+echo $MOUNT_DIR | grep -q "^/.\+" || MOUNT_DIR=${TOP_DIR}/${MOUNT_DIR}
+mkdir -p $MOUNT_DIR
+UmountDir $MOUNT_DIR
+
+cfont -white "Mount $BASE_ISO on ${MOUNT_DIR}: " -reset
+mount $BASE_ISO $MOUNT_DIR -o loop -r && cfont -green "[OK]" -reset -n || {
+cfont -red "[FAIL]" -reset -n
+exit 1
+}
+
+cfont -white "Copy files from $BASE_ISO to ${DEST_DIR}: " -reset
+rsync -a --delete ${MOUNT_DIR}/ ${DEST_DIR}/ && cfont -green "[OK]" -reset -n || {
+cfont -red "[FAIL]" -reset -n
+exit 1
+}
+UmountDir $MOUNT_DIR
 
 # copy repo and node.ks
-rsync -a repo $isodir/
-rsync -aP node.ks $isodir/
-rsync -aP pxe.ks $isodir/pxeboot/
+rsync -a repo ${DEST_DIR}/
+rsync -aP node.ks ${DEST_DIR}/
+rsync -aP pxe.ks ${DEST_DIR}/pxeboot/
 
 # use custom install.img and initrd.img
 cd $TOP_DIR/sage-images/iso-initrd/
@@ -49,15 +56,15 @@ cd $TOP_DIR/sage-images/stage2/
 ./rebuild.sh
 
 cd $TOP_DIR
-mv $isodir/images/install.img $isodir/images/install.img.bak
-rm -rf $isodir/images/*.img
-rsync -aP sage-images/stage2/install.img $isodir/images/
+mv ${DEST_DIR}/images/install.img $isodir/images/install.img.bak
+rm -rf ${DEST_DIR}/images/*.img
+rsync -aP sage-images/stage2/install.img ${DEST_DIR}/images/
 
-rm -rf $isodir/isolinux/initrd.img
-rsync -aP sage-images/iso-initrd/initrd.img $isodir/isolinux/
+rm -rf ${DEST_DIR}/isolinux/initrd.img
+rsync -aP sage-images/iso-initrd/initrd.img ${DEST_DIR}/isolinux/
 
-mkdir -p $isodir/pxeboot/
-rsync -aP sage-images/pxe-initrd/initrd.img $isodir/pxeboot/
+mkdir -p ${DEST_DIR}/pxeboot/
+rsync -aP sage-images/pxe-initrd/initrd.img ${DEST_DIR}/pxeboot/
 
 # modify the isolinux.cfg
 cat >./isolinux.cfg<<EOF
@@ -85,12 +92,12 @@ kernel vmlinuz
 append initrd=initrd.img text ks=cdrom:/node.ks
 EOF
 
-rsync -aP ./isolinux.cfg $isodir/isolinux/isolinux.cfg
+rsync -aP ./isolinux.cfg ${DEST_DIR}/isolinux/isolinux.cfg
 
 CheckBinPKG mkisofs
 
 # make iso
-mkisofs -o uOS.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -R -J -v -T -V "UnitedStack uOS 1.0" $isodir/
+mkisofs -o uOS.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -R -J -v -T -V "UnitedStack uOS 1.0" ${DEST_DIR}/
 sync
 
 echo 'Wrote '${TOP_DIR}'/uOS.iso'
